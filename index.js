@@ -36,7 +36,7 @@ module.exports = {
     MockXMLHttpRequest.reset();
     return this;
   },
-
+  
   /**
    * Mock a request
    * @param   {string}    [method]
@@ -44,80 +44,81 @@ module.exports = {
    * @param   {Function}  fn
    * @returns {exports}
    */
-  mock: function(method, url, fn) {
-    var handler, matcher;
-    if (arguments.length === 3) {
-      matcher = function(req) {
-        if (req.method() !== method) return false;
-        var reqUrl = req.url();
-        // allow regexp urls matcher
-        if (url instanceof RegExp) return url.test(reqUrl);
-        // otherwise assume the url is a string
-        return url === reqUrl;
-      }
-      handler = function(req, res) {
-        if (matcher(req)) {
-          return fn(req, res);
-        }
-        return false;
+  mock: function(method, url, options, fn) {
+    if (typeof options === 'function'){
+      fn = options;
+      options = {};
+    }
+    
+    var handler;
+    if (arguments.length >= 3) {
+      handler = {
+        match: function(req) {
+          if (req.method() === method && ( options.partialUrlMatch ? req.url().indexOf(url) !== -1 : req.url() === url )) {
+            return true;
+          }
+          return false;
+        },
+        callback:function (req, res) { return fn(req, res); },
+        sync:!!options.sync
       };
     } else {
       handler = method;
     }
-
     MockXMLHttpRequest.addHandler(handler);
-
+    
     return this;
   },
-
+  
+  
+  
   /**
    * Mock a GET request
    * @param   {String}    url
    * @param   {Function}  fn
    * @returns {exports}
    */
-  get: function(url, fn) {
-    return this.mock('GET', url, fn);
+  get: function(url, options, fn) {
+    return this.mock('GET', url, options, fn);
   },
-
+  
   /**
    * Mock a POST request
    * @param   {String}    url
    * @param   {Function}  fn
    * @returns {exports}
    */
-  post: function(url, fn) {
-    return this.mock('POST', url, fn);
+  post: function(url, options, fn) {
+    return this.mock('POST', url, options, fn);
   },
-
+  
   /**
    * Mock a PUT request
    * @param   {String}    url
    * @param   {Function}  fn
    * @returns {exports}
    */
-  put: function(url, fn) {
-    return this.mock('PUT', url, fn);
+  put: function(url, options, fn) {
+    return this.mock('PUT', url, options, fn);
   },
-
+  
   /**
    * Mock a PATCH request
    * @param   {String}    url
    * @param   {Function}  fn
    * @returns {exports}
    */
-  patch: function(url, fn) {
-    return this.mock('PATCH', url, fn);
+  patch: function(url, options, fn) {
+    return this.mock('PATCH', url, options, fn);
   },
-
   /**
    * Mock a DELETE request
    * @param   {String}    url
    * @param   {Function}  fn
    * @returns {exports}
    */
-  delete: function(url, fn) {
-    return this.mock('DELETE', url, fn);
+  del: function(url, options, fn) {
+    return this.mock('DELETE', url, options, fn);
   }
 
 };
